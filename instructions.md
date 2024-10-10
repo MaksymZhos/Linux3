@@ -1,6 +1,6 @@
 Here is the entire process as a single Markdown file, combining all steps and details:
 
-```markdown
+
 # Cloud Deployment on Oracle Cloud (25%)
 
 ## Step 1: Setting Up Cloud Infrastructure

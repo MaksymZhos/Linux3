@@ -108,7 +108,7 @@ Deploy the web application from Part 2 (login and session functionality) to the 
 
 2. **Start the Node.js Application Using PM2**:
    ```bash
-   pm2 start app.js --name "myApp"
+   pm2 start index.js --name "myApp"
    pm2 save
    pm2 startup
    ```
@@ -118,6 +118,10 @@ Deploy the web application from Part 2 (login and session functionality) to the 
 
 4. **Verify Website Deployment**:
    - Verified that the login and session functionality of the website works properly via the domain name `vanila.lynxserver.games`.
+   - ![image](https://github.com/user-attachments/assets/0592f6a1-f81f-4bfc-927d-45d35269a157)
+   - ![image](https://github.com/user-attachments/assets/7d63a803-9e56-4c53-8589-028769d02403)
+
+
 
 ---
 

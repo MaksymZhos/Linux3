@@ -145,4 +145,3 @@ Deploy the web application from Part 2 (login and session functionality) to the 
 The website is successfully deployed on the Oracle Cloud instance with automatic HTTPS configured using Caddy. The website is fully operational and accessible via the domain `vanila.lynxserver.games`, with login and session functionalities working as expected.
 ```
 
-Make sure to add the relevant screenshots alongside the Markdown file, as mentioned in the report!

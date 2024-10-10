@@ -1,148 +1,144 @@
-# Linux a3p2 Adding a Firewall
+Here is the entire process as a single Markdown file, combining all steps and details:
 
-## Step 1: Check if ufw is installed and ssh is alowed, as you dont want to be locked out of the system.
+```markdown
+# Cloud Deployment on Oracle Cloud (25%)
 
-### 1.1 Check for updates and update if needed your existing repositories.
+## Step 1: Setting Up Cloud Infrastructure
 
-```bash
-sudo pacman -Syu
-```
-### 1.2 Install ufw using pacman.
+### Task:
+- I used **Oracle Cloud** for this project.
+- Launched an Oracle Linux instance and installed necessary dependencies.
 
-```bash
-sudo pacman -S ufw
-```
-### 1.3 Check current state of the ufw.
+### Security Configuration:
+- Configured security groups (firewall rules) to allow HTTP and HTTPS traffic by setting up Ingress rules in the Oracle Cloud firewall. These rules enabled traffic on ports 80 (HTTP) and 443 (HTTPS) to reach the cloud instance.
 
-```bash
-sudo ufw status #to check the current active state
-sudo ufw show added to see which ufw are set
-```
+---
 
-- There should be no rules set and the state should be inactive. DO NOT ENABLE before completing next steps as it will resault in losing ablity to connect to your system!
+## Step 2: Installing Caddy on the Cloud Instance
 
-### 1.4 Allow the use of needed ports with the following commands.
+### Task:
+Install Caddy on the Oracle Cloud instance.
 
-```bash
-sudo ufw allow ssh
-sudo ufw allow http
-sudo ufw allow 8080
-```
+### Steps:
 
-- Check if all the rules applied usnig.
+1. **SSH into the instance**:
+   ```bash
+   ssh -i your_key.pem opc@<public_ip_of_instance>
+   ```
 
+2. **Enable COPR Repository**:
+   ```bash
+   sudo dnf install 'dnf-command(copr)'
+   sudo dnf copr enable @caddy/caddy
+   ```
+
+3. **Install Caddy**:
+   ```bash
+   sudo dnf install caddy
+   ```
+
+4. **Start and enable Caddy**:
+   ```bash
+   sudo systemctl start caddy
+   sudo systemctl enable caddy
+   ```
+
+5. **Verify Caddy Installation**:
+   ```bash
+   caddy version
+   ```
+
+### Making Caddy Publicly Accessible:
+- I made Caddy publicly accessible by allowing HTTP and HTTPS traffic through the Oracle Cloud firewall and correctly setting the domain name in the Caddyfile configuration.
+
+---
+
+## Step 3: Domain Name and HTTPS Setup
+
+### Task:
+Configure a domain name and enable HTTPS for the website using Caddy.
+
+### Steps:
+
+1. **Get a Domain**:
+   - I registered a domain using a free service like **Freenom**. The domain I used is `vanila.lynxserver.games`.
+
+2. **Configure DNS A Record**:
+   - Created an A record to point the domain to the public IP address of the Oracle Cloud instance.
+     - **Name**: `vanila.lynxserver.games`
+     - **Type**: A
+     - **Value**: `<instance_public_ip>`
+
+3. **Configure Caddyfile**:
+   - Edited the Caddyfile to handle automatic HTTPS and set up a reverse proxy to forward requests to the web app running on port `3001`.
+
+   **Caddyfile**:
+   ```text
+   vanila.lynxserver.games {
+       reverse_proxy localhost:3001
+       log {
+           output file /var/log/caddy/access.log
+       }
+   }
+   ```
+
+4. **Restart Caddy**:
+   ```bash
+   sudo systemctl restart caddy
+   ```
+
+5. **Check Caddy Logs** for any issues:
+   ```bash
+   journalctl -u caddy --no-pager | tail -n 50
+   ```
+
+---
+
+## Step 4: Deploying the Website
+
+### Task:
+Deploy the web application from Part 2 (login and session functionality) to the Oracle Cloud instance.
+
+### Steps:
+
+1. **Install PM2 to Manage the Application**:
+   ```bash
+   sudo npm install -g pm2
+   ```
+
+2. **Start the Node.js Application Using PM2**:
+   ```bash
+   pm2 start app.js --name "myApp"
+   pm2 save
+   pm2 startup
+   ```
+
+3. **Ensure Caddy is Configured for Reverse Proxy**:
+   - The Caddyfile routes all traffic coming to `vanila.lynxserver.games` to the Node.js application running on port `3001`.
+
+4. **Verify Website Deployment**:
+   - Verified that the login and session functionality of the website works properly via the domain name `vanila.lynxserver.games`.
+
+---
+
+## Troubleshooting Steps:
+
+### Common Issues:
+- **DNS Propagation**: If the domain is not resolving, ensure the A record points to the correct public IP address and wait for DNS changes to propagate (which can take up to 24 hours).
+- **Caddy SSL Issues**: If SSL fails to work, check the Caddy logs for potential errors:
   ```bash
-  sudo ufw show added
+  journalctl -u caddy --no-pager | tail -n 50
   ```
-- You should see the following output.
-  ![image](https://github.com/MaksymZhos/Linux3/assets/148744478/94b2f78d-cdb2-4c41-8a10-0438efe2e7d9)
 
-### 1.4 Now we can enable ufw using.
+### Solutions:
+- Restarted Caddy after making DNS changes to ensure the configurations were applied correctly.
+- Ensured that ports 80 and 443 were open in the Oracle Cloud firewall.
 
-```bash
-sudo ufw enable
+---
+
+## Conclusion:
+
+The website is successfully deployed on the Oracle Cloud instance with automatic HTTPS configured using Caddy. The website is fully operational and accessible via the domain `vanila.lynxserver.games`, with login and session functionalities working as expected.
 ```
 
-- To ensure everything works run.
-
-  ```bash
-  sudo ufw status
-  ```
-- You should see the following output.
-![Screenshot 2024-04-10 125626](https://github.com/MaksymZhos/Linux3/assets/148744478/9616352e-19c7-4e73-b011-8e0ca7cab62b)
-
-
-# Step 2: Setting up Server File
-
-### 2.1 Download the file provided alongside instructions and open file location in terminal on your local machine.
-
-### 2.2 With your powershell in that directory, use sftp to connect to your droplet and upload the file using the put command through sftp. 
-
-```bash
-sftp linux
-```
-- After running the command above you should see similar output which will vary depended on your file location.
-  
-  ![image](https://github.com/MaksymZhos/Linux3/assets/148744478/18ed7f14-dbf8-4bcf-b274-861cd5fb50fa)
-- Next type and run.
-```bash
-put hello-server
-```
-- You should see the following output.
-![Screenshot 2024-04-10 130650](https://github.com/MaksymZhos/Linux3/assets/148744478/edf45d8b-eff1-4f53-ba04-8b916c3faaa4)
-
-
-### 2.3  Move the file to the correct location.
-
-```bash
-sudo mv hello-server /usr/local/bin/backend
-```
-
-### 2.4 Make the file into executable.
-
-```bash
-sudo chmod u+x /usr/local/bin/backend
-```
-
-### 2.5.1 Open file to set its properties as a service so it can correctly run in the background.
-
-In this example we are using vim.
-```bash
-sudo vim /etc/systemd/system/backend.service
-```
-### 2.5.2 Copy and paste the folloing into the file.
-
-```bash
-[Unit] #This gives information about the service
-Description=Backend Service #Name of the service
-After=network.target
-
-[Service]
-Type=Simple
-ExecStart=/usr/local/bin/backend #Location of the File
-Restart=always #Reload after changes
-
-[Install]
-WantedBy=multi-user.target #Works for all users
-```
-### 2.5.3 Start and Enable the service. 
-
-```bash
-sudo systemctl start backend
-sudo systemctl enable backend
-```
-
-# Step 3: Reverse Proxy
-
-### 3.1 Open the configuration file you made in sites-available last assignment.
-
-```bash
-sudo vim /etc/nginx/sites-available/nginx-2420
-```
-### 3.2 Copy and paste the following lines into the server block.
-```bash
-location /hey {
-    proxy_pass http://127.0.0.1:8080;
-}
-
-location /echo {
-    proxy_pass http://127.0.0.1:8080;
-}
-```
-
-### 3.3 Run ``` sudo nginx -t ``` to ensure correct syntax.
-
-# Testing
-
-- Run ``` sudo systemctl restart nginx ``` in order to restart.
-
-- You can now  go to ``` http:/your-droplet-ip/hey ``` or ``` http:/your-droplet-ip/echo ``` using your postman and sending get requests.
-- Here are the examples of running server
--  ![image](https://github.com/MaksymZhos/Linux3/assets/148744478/d9a045b5-b906-44aa-825e-9c46eeabbde7)
--  ![image](https://github.com/MaksymZhos/Linux3/assets/148744478/d1d2ece0-2881-4f23-a8bb-f07718bbb4a6)
--  ![image](https://github.com/MaksymZhos/Linux3/assets/148744478/ad1b18d7-a5c6-4da7-87ba-c15f1cda054c)
-
-
- 
-
-  
+Make sure to add the relevant screenshots alongside the Markdown file, as mentioned in the report!

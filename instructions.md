@@ -10,6 +10,7 @@ Open your terminal and SSH into the server:
 ```bash
 ssh username@your-server-ip
 ```
+```
 Replace `username` with your SSH username and `your-server-ip` with the actual IP address of your server.
 
 ## 2. Install MySQL Server

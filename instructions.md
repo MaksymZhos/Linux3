@@ -1,144 +1,182 @@
-# Cloud Deployment on Oracle Cloud (25%)
+Here's the guide in GitHub markdown format:
 
-## Step 1: Setting Up Cloud Infrastructure
+```markdown
+# PHSA Application Installation Guide
 
-### Task:
-- I used **Oracle Cloud** for this project.
-- Launched an Oracle Linux instance and installed necessary dependencies.
+Follow these steps to install and deploy the PHSA application on your server.
 
-### Security Configuration:
-- Configured security groups (firewall rules) to allow HTTP and HTTPS traffic by setting up Ingress rules in the Oracle Cloud firewall. These rules enabled traffic on ports 80 (HTTP) and 443 (HTTPS) to reach the cloud instance.
+## 1. SSH into the Server
+Open your terminal and SSH into the server:
+```bash
+ssh username@your-server-ip
+```
+Replace `username` with your SSH username and `your-server-ip` with the actual IP address of your server.
 
----
+## 2. Install MySQL Server
+Check if MySQL is installed by running:
+```bash
+mysql --version
+```
+If MySQL is not installed, install it using the following commands:
 
-## Step 2: Installing Caddy on the Cloud Instance
-
-### Task:
-Install Caddy on the Oracle Cloud instance.
-
-### Steps:
-
-1. **SSH into the instance**:
-   ```bash
-   ssh -i your_key.pem opc@<public_ip_of_instance>
-   ```
-
-2. **Enable COPR Repository**:
-   ```bash
-   sudo dnf install 'dnf-command(copr)'
-   sudo dnf copr enable @caddy/caddy
-   ```
-
-3. **Install Caddy**:
-   ```bash
-   sudo dnf install caddy
-   ```
-
-4. **Start and enable Caddy**:
-   ```bash
-   sudo systemctl start caddy
-   sudo systemctl enable caddy
-   ```
-
-5. **Verify Caddy Installation**:
-   ```bash
-   caddy version
-   ```
-
-### Making Caddy Publicly Accessible:
-- I made Caddy publicly accessible by allowing HTTP and HTTPS traffic through the Oracle Cloud firewall and correctly setting the domain name in the Caddyfile configuration.
-
----
-
-## Step 3: Domain Name and HTTPS Setup
-
-### Task:
-Configure a domain name and enable HTTPS for the website using Caddy.
-
-### Steps:
-
-1. **Get a Domain**:
-   - I registered a domain using a free service like **Freenom**. The domain I used is `vanila.lynxserver.games`.
-
-2. **Configure DNS A Record**:
-   - Created an A record to point the domain to the public IP address of the Oracle Cloud instance.
-     - **Name**: `vanila.lynxserver.games`
-     - **Type**: A
-     - **Value**: `<instance_public_ip>`
-
-3. **Configure Caddyfile**:
-   - Edited the Caddyfile to handle automatic HTTPS and set up a reverse proxy to forward requests to the web app running on port `3001`.
-
-   **Caddyfile**:
-   ```text
-   vanila.lynxserver.games {
-       reverse_proxy localhost:3001
-       log {
-           output file /var/log/caddy/access.log
-       }
-   }
-   ```
-
-4. **Restart Caddy**:
-   ```bash
-   sudo systemctl restart caddy
-   ```
-
-5. **Check Caddy Logs** for any issues:
-   ```bash
-   journalctl -u caddy --no-pager | tail -n 50
-   ```
-
----
-
-## Step 4: Deploying the Website
-
-### Task:
-Deploy the web application from Part 2 (login and session functionality) to the Oracle Cloud instance.
-
-### Steps:
-
-1. **Install PM2 to Manage the Application**:
-   ```bash
-   sudo npm install -g pm2
-   ```
-
-2. **Start the Node.js Application Using PM2**:
-   ```bash
-   pm2 start index.js --name "myApp"
-   pm2 save
-   pm2 startup
-   ```
-
-3. **Ensure Caddy is Configured for Reverse Proxy**:
-   - The Caddyfile routes all traffic coming to `vanila.lynxserver.games` to the Node.js application running on port `3001`.
-
-4. **Verify Website Deployment**:
-   - Verified that the login and session functionality of the website works properly via the domain name `vanila.lynxserver.games`.
-   - ![image](https://github.com/user-attachments/assets/0592f6a1-f81f-4bfc-927d-45d35269a157)
-   - ![image](https://github.com/user-attachments/assets/7d63a803-9e56-4c53-8589-028769d02403)
-
-
-
----
-
-## Troubleshooting Steps:
-
-### Common Issues:
-- **DNS Propagation**: If the domain is not resolving, ensure the A record points to the correct public IP address and wait for DNS changes to propagate (which can take up to 24 hours).
-- **Caddy SSL Issues**: If SSL fails to work, check the Caddy logs for potential errors:
+- For Ubuntu/Debian:
   ```bash
-  journalctl -u caddy --no-pager | tail -n 50
+  sudo apt update
+  sudo apt install mysql-server
+  sudo mysql_secure_installation
+  ```
+- For CentOS/RHEL:
+  ```bash
+  sudo yum install mysql-server
+  sudo systemctl start mysqld
+  sudo mysql_secure_installation
   ```
 
-### Solutions:
-- Restarted Caddy after making DNS changes to ensure the configurations were applied correctly.
-- Ensured that ports 80 and 443 were open in the Oracle Cloud firewall.
+Ensure MySQL is running:
+```bash
+sudo systemctl status mysql
+```
 
----
+## 3. Install Node.js
+Check if Node.js is installed:
+```bash
+node --version
+```
+If not installed, use Node Version Manager (nvm):
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+nvm install node
+nvm use node
+```
 
-## Conclusion:
+Verify installation:
+```bash
+node --version
+npm --version
+```
 
-The website is successfully deployed on the Oracle Cloud instance with automatic HTTPS configured using Caddy. The website is fully operational and accessible via the domain `vanila.lynxserver.games`, with login and session functionalities working as expected.
+## 4. Create the Application Directory
+Create a folder where you want to install the application:
+```bash
+mkdir /var/www/phsa
+cd /var/www/phsa
+```
 
+## 5. Clone the Repository
+Clone the GitHub repository into your created folder:
+```bash
+git clone git@github.com:a0a912/phsa.git .
+```
+Ensure your SSH key is set up on GitHub before running this command.
 
+## 6. Install Project Dependencies
+Inside the project folder, install all dependencies:
+```bash
+npm install
+```
+
+## 7. Install PM2
+Install PM2 globally:
+```bash
+npm install pm2@latest -g
+```
+
+## 8. Configure Environment Variables
+Create a `.env` file in the root of your project directory with the following content:
+```env
+PORT=4308
+FLASK_PORT=4309
+DB_HOST=192.18.154.121
+DB_USER=do_admin_nj
+DB_PASSWORD=1768f3y9hcej0jn31iuy819iji1fmnb972f4gbcuiqwipm
+DB_NAME=PHSA
+DB_PY_HOST=192.18.154.121
+DB_PY_NAME=PHSA
+DB_PY_USER=do_read_py
+DB_PY_PASSWORD=ye2fivru7498fijcvbu984fgvj9c4fj8ec894f0c940gh9g
+DB_manage_HOST=192.18.154.121
+DB_manage_NAME=PHSA
+DB_manage_USER=do_admin_main
+DB_manage_PASSWORD=312435y46u5i7jmynrbvwqd13t45y6u7j43tbg2vf1
+```
+
+## 9. Set Up the Database
+Run the database setup script:
+```bash
+python manage_db.py
+```
+
+## 10. Install tmux
+Install tmux:
+```bash
+sudo apt-get install tmux
+```
+For CentOS/RHEL:
+```bash
+sudo yum install tmux
+```
+
+## 11. Start Deployment with tmux
+Start a new tmux session:
+```bash
+tmux new-session -s phsa_deploy
+```
+Inside the tmux session, run the deployment script:
+```bash
+python deployment.py
+```
+Detach from tmux by pressing `Ctrl+b+d`.
+
+## 12. Start the Application with PM2
+Start the application using PM2:
+```bash
+pm2 start server.js
+```
+
+## 13. Set Up Reverse Proxy
+Install Nginx:
+```bash
+sudo apt-get install nginx
+```
+Create a new configuration file for your app:
+```bash
+sudo nano /etc/nginx/sites-available/phsa
+```
+Add the following to the file:
+```nginx
+server {
+    listen 80;
+    server_name your_domain_or_ip;
+
+    location / {
+        proxy_pass http://localhost:4308;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
+Enable the site:
+```bash
+sudo ln -s /etc/nginx/sites-available/phsa /etc/nginx/sites-enabled/
+```
+Test and restart Nginx:
+```bash
+sudo nginx -t
+sudo systemctl restart nginx
+```
+
+## 14. Verify the Application
+Verify that your application is running by visiting your server's domain or IP address:
+```bash
+http://your-domain-or-ip
+```
+Check PM2 logs:
+```bash
+pm2 logs
+```
+```
+
+This markdown format will render correctly on GitHub as a plain and detailed step-by-step guide for installing and deploying the PHSA application.

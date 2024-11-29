@@ -1,6 +1,6 @@
 Here's the guide in GitHub markdown format:
 
-```markdown
+```bash
 # PHSA Application Installation Guide
 
 Follow these steps to install and deploy the PHSA application on your server.
@@ -179,4 +179,3 @@ pm2 logs
 ```
 ```
 
-This markdown format will render correctly on GitHub as a plain and detailed step-by-step guide for installing and deploying the PHSA application.
